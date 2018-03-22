@@ -1,0 +1,45 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  peer0.org2.lede.com:
+
+networks:
+  byfn:
+services:
+  ca1:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-org2
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org2.lede.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/2df5e223bf0f2086a9444d15c6e4a3a09a906b3aa5a1a962c64e039c8660dbf8_sk
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org2.lede.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/2df5e223bf0f2086a9444d15c6e4a3a09a906b3aa5a1a962c64e039c8660dbf8_sk -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/org2.lede.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_peerOrg2
+    extra_hosts:
+      - "orderer.lede.com:10.120.240.33"
+      - "peer0.org1.lede.com:10.120.240.28"
+      - "peer0.org2.lede.com:10.120.240.29"
+    networks:
+      - byfn
+
+  peer0.org2.lede.com:
+    container_name: peer0.org2.lede.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.org2.lede.com
+    extra_hosts:
+      - "orderer.lede.com:10.120.240.33"
+      - "peer0.org1.lede.com:10.120.240.28"
+      - "peer0.org2.lede.com:10.120.240.29"
+    networks:
+      - byfn
